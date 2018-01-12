@@ -3,12 +3,16 @@ import pygame
 
 class Menu:
     class Item:
-        def __init__(self, itemString: str, sceneName: str, font: pygame.font, textColor, backgroundColor):
+        def __init__(self, itemString: str, sceneName: str, font: pygame.font,
+                     textColor=(255, 255, 255), backgroundColor=(0, 0, 0)):
             self.text = itemString
             self.sceneName = sceneName
             self.font = font
             self.textColor = textColor
             self.backgroundColor = backgroundColor
+
+        def getSurface(self):
+            return self.font.render(self.text, 1, self.textColor, self.backgroundColor)
 
     def __init__(self, gameInstance, title: str):
         self.gameInstance = gameInstance
@@ -65,7 +69,7 @@ class Menu:
         y += self.titleBottomPadding + titleSurface.get_rect().height
 
         for item in self.items:
-            itemSurface = item.font.render(item.text, 1, item.textColor, item.backgroundColor)
+            itemSurface = item.getSurface()
 
             itemW, itemH = itemSurface.get_rect().size
             x = (self.gameInstance.width - itemW)/2
@@ -75,9 +79,11 @@ class Menu:
 
     def activate(self):
         scene = self.activeItem.sceneName
+        validScenes = ["help", "level1"]
         if scene == "quit":
             self.gameInstance.isRunning = False
-        elif scene == "level1":
+        if scene in validScenes:
             self.gameInstance.setCurrentScene(scene)
         else:
             print("No action assined to menu item 'sceneName' string")
+            print("Valid strings: ", validScenes)

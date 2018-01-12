@@ -57,7 +57,8 @@ class Player(GameObject):
         super().__init__(gameInstance)
         self.width = 60
         self.height = 65
-        self.image = pygame.Surface((self.width, self.height))
+        self.image = pygame.Surface((self.width, self.height)).convert_alpha()
+        self.image.fill((0, 0, 0, 0))
         self.image.blit(image, (0, 0), (145, 25, self.width, self.height))
         self.rect = self.image.get_rect()
         self.rect.move_ip((self.gameInstance.width - self.width)/2, self.gameInstance.height - self.height)

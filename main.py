@@ -1,5 +1,5 @@
 import pygame
-from scripts.Scene import MainMenuScene, Level1Scene
+from scripts.Scene import MainMenuScene, HelpScreenScene, Level1Scene
 
 
 class Game:
@@ -13,15 +13,15 @@ class Game:
         self.currentScene = None
         self.isRunning = True
         self.scenes = dict(
-            mainMenu=MainMenuScene(self),
-            # pauseMenu=PauseMenuScene(self),
+            menu=MainMenuScene(self),
+            help=HelpScreenScene(self),
             level1=Level1Scene(self)
         )
 
     def run(self):
         self.screen.fill(self.backgroundColor)
-
         self.handleEvents()
+
         self.currentScene.tick()
 
         self.clock.tick(self.fps)
@@ -32,17 +32,10 @@ class Game:
             if event.type == pygame.QUIT:
                 self.isRunning = False
                 break
-            # ------------KeyDownEvents--------------
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     self.isRunning = False
                     break
-            # ---------------------------------------
-
-            # -------------KeyUpEvents---------------
-            elif event.type == pygame.KEYUP:
-                pass
-            # ---------------------------------------
 
             game.currentScene.handleEvent(event)
 
@@ -56,8 +49,7 @@ class Game:
 pygame.init()
 
 game = Game()
-# game.setCurrentScene("level1")
-game.setCurrentScene("mainMenu")
+game.setCurrentScene("menu")
 while game.isRunning:
     game.run()
 

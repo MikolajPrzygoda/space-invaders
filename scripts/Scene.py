@@ -27,7 +27,7 @@ class MainMenuScene(Scene):
 
     def load(self):
         self.menu = Menu(self.gameInstance, "Space Invaders")
-        self.menu.addItem("Graj", "level1")
+        self.menu.addItem("Play", "level1")
         self.menu.addItem("Help", "help")
         self.menu.addItem("Quit", "quit")
 
@@ -67,7 +67,6 @@ class Level1Scene(Scene):
             "enemy": pygame.image.load("assets/alienShip2.png").convert_alpha(),
             "projectile": pygame.image.load("assets/projectile.png").convert_alpha()
         }
-        pygame.display.get_surface().blit(self.images["player"], (0, 0))
         self.gameObjects["player"] = Player(self.gameInstance, self.images["player"])
         self.gameObjects["enemies"].append(Enemy(self.gameInstance, self.images["enemy"], 300, 0))
 
@@ -86,7 +85,6 @@ class Level1Scene(Scene):
 
     def tick(self):
         # remove offscreen projectiles
-        print(len(self.gameObjects["playerProjectiles"]))
         for i in range(len(self.gameObjects["playerProjectiles"])):
             if self.gameObjects["playerProjectiles"][i].rect.y < -self.gameObjects["playerProjectiles"][i].height:
                 del self.gameObjects["playerProjectiles"][i]
@@ -100,3 +98,42 @@ class Level1Scene(Scene):
             gameObject.update()
             gameObject.handleInput()
             gameObject.draw()
+
+
+class HelpScreenScene(Scene):
+    def __init__(self, gameInstance):
+        super().__init__(gameInstance)
+        self.labels = None
+        self.font = None
+        self.textColor = None
+        self.bgrColor = None
+
+    def load(self):
+        self.labels = list()
+        self.font = pygame.font.SysFont("monospace", 20)
+        self.textColor = (255, 255, 255)
+        self.bgrColor = (0, 0, 0)
+        self.labels.append(Menu.Item("Sterowanie statkiem: w/s/a/d", "", self.font))
+        self.labels.append(Menu.Item("Przelaczanie strzelania: spacja", "", self.font))
+        self.labels.append(Menu.Item("Wybor opcji menu: spacja / enter", "", self.font))
+        self.labels.append(Menu.Item("Nacisnij 'q' aby wrocic z tego ekranu", "", self.font))
+
+    def unload(self):
+        self.labels = None
+        self.font = None
+        self.textColor = None
+        self.bgrColor = None
+
+    def handleEvent(self, event):
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_q:
+                self.gameInstance.setCurrentScene("menu")
+
+    def tick(self):
+        screenPadding = 40
+        itemBottomPadding = 20
+        x, y = screenPadding, screenPadding
+        for label in self.labels:
+            surf = label.getSurface()
+            self.gameInstance.screen.blit(surf, (x, y))
+            y += surf.get_rect().height + itemBottomPadding
