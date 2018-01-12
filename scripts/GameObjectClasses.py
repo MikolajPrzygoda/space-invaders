@@ -1,9 +1,16 @@
 import pygame
+from pygame import Surface
 
 
 class GameObject:
     def __init__(self, gameInstance):
         self.gameInstance = gameInstance
+        self.image = None
+        self.rect = None
+
+        #for smooth movement - used in moveFloat method
+        self.dx = 0
+        self.dy = 0
 
     def update(self):
         raise NotImplementedError
@@ -12,62 +19,62 @@ class GameObject:
         raise NotImplementedError
 
     def draw(self):
-        raise NotImplementedError
+        self.gameInstance.screen.blit(self.image, self.rect)
+
+    def moveFloat(self, x: float, y: float):
+        self.dx += x
+        self.dy += y
+        if abs(self.dx) > 1:
+            self.rect.move_ip(int(self.dx), 0)
+            self.dx -= int(self.dx)
+        if abs(self.dy) > 1:
+            self.rect.move_ip(0, int(self.dy))
+            self.dy -= int(self.dy)
 
 
 class Projectile(GameObject):
 
-    def __init__(self, gameInstance, x, y, travelSpeed, damage):
+    def __init__(self, gameInstance, image: Surface, x: int, y: int, travelSpeed: int, damage: int):
         super().__init__(gameInstance)
-        self.image = pygame.image.load("assets/projectile.png").convert_alpha()
-        self.width = self.image.get_rect().size[0]
-        self.height = self.image.get_rect().size[1]
-        self.x = x - self.width/2
-        self.y = y # no "- self.height/2" to spawn projectile hidden behind the player image
+        self.image = image.copy()
+        self.rect = self.image.get_rect()
+        self.width = self.rect.size[0]
+        self.height = self.rect.size[1]
+        self.rect.move_ip(x - self.width/2, y)
         self.travelSpeed = travelSpeed
         self.damage = damage
-        self.gameInstance.gameObjects["projectiles"].append(self)
+        self.gameInstance.currentScene.gameObjects["playerProjectiles"].append(self)
 
     def update(self):
-        self.y -= self.travelSpeed
-
-    def draw(self):
-        self.gameInstance.screen.blit(self.image, (self.x, self.y))
+        self.moveFloat(0, -self.travelSpeed)
 
     def handleInput(self):
         pass
 
-    # def __del__(self, gameInstance):
-    #     gameInstance.gameObjects.remove(self)
-    #     print("deleting projectile: ", self.projID)
-
 
 class Player(GameObject):
-    def __init__(self, gameInstance):
+    def __init__(self, gameInstance, image: Surface):
         super().__init__(gameInstance)
         self.width = 60
         self.height = 65
-        self.playerSprites = self.gameInstance.playerSprites
         self.image = pygame.Surface((self.width, self.height))
-        self.image.blit(self.playerSprites, (0, 0), (145, 25, self.width, self.height))
+        self.image.blit(image, (0, 0), (145, 25, self.width, self.height))
+        self.rect = self.image.get_rect()
+        self.rect.move_ip((self.gameInstance.width - self.width)/2, self.gameInstance.height - self.height)
 
-        self.maxSpeed = 6
+        self.maxSpeed = 8
         self.speedDumpingFactor = 0.92
-        self.acceleration = 0.3
+        self.acceleration = 0.6
         self.currentSpeed = {
             "x": 0,
             "y": 0
-        }
-        self.position = {
-            "x": (self.gameInstance.width - self.width)/2,
-            "y": self.gameInstance.height - self.height
         }
         self.minHeight = self.gameInstance.height - 300
 
         self.isShooting = False
         self.shootingSpeed = 20
         self.shootingCooldown = 0
-        self.projectileSpeed = 13
+        self.projectileSpeed = 12
         self.projectileDamage = 1
 
     def updateSpeed(self):
@@ -96,29 +103,30 @@ class Player(GameObject):
         self.move(self.currentSpeed["x"], self.currentSpeed["y"])
 
     def move(self, x, y):
-        self.position["x"] += x
-        if self.position["x"] < 0:
-            self.position["x"] = 0
+        self.moveFloat(x, y)
+
+        if self.rect.x < 0:
+            self.rect.x = 0
             self.currentSpeed["x"] = 0
-        elif self.position["x"] + self.width > self.gameInstance.width:
-            self.position["x"] = self.gameInstance.width - self.width
+        elif self.rect.x + self.width > self.gameInstance.width:
+            self.rect.x = self.gameInstance.width - self.width
             self.currentSpeed["x"] = 0
 
-        self.position["y"] += y
-        if self.position["y"] + self.height < self.minHeight:
-            self.position["y"] = self.minHeight - self.height
+        if self.rect.y + self.height < self.minHeight:
+            self.rect.y = self.minHeight - self.height
             self.currentSpeed["y"] = 0
 
-        elif self.position["y"] + self.height > self.gameInstance.height:
-            self.position["y"] = self.gameInstance.height - self.height
+        elif self.rect.y + self.height > self.gameInstance.height:
+            self.rect.y = self.gameInstance.height - self.height
             self.currentSpeed["y"] = 0
-
-    def toggleIsShooting(self):
-        self.isShooting = not self.isShooting
 
     def shoot(self):
-        Projectile(self.gameInstance, self.position["x"]+self.width/2, self.position["y"],
-                   self.projectileSpeed, self.projectileDamage)
+        Projectile(self.gameInstance,
+                   self.gameInstance.currentScene.images["projectile"],
+                   self.rect.x + self.width/2, self.rect.y,
+                   self.projectileSpeed,
+                   self.projectileDamage
+        )
 
     def handleInput(self):
         pass
@@ -127,50 +135,42 @@ class Player(GameObject):
         self.updateSpeed()
         self.updatePosition()
 
-        if self.isShooting and self.shootingCooldown == 0:
-            self.shoot()
-            self.shootingCooldown = self.shootingSpeed
+        if self.shootingCooldown == 0:
+            if self.isShooting:
+                self.shoot()
+                self.shootingCooldown = self.shootingSpeed
         else:
             if self.shootingCooldown > 0:
                 self.shootingCooldown -= 1
 
-    def draw(self):
-        self.gameInstance.screen.blit(self.image, (self.position["x"], self.position["y"]))
-
 
 class Enemy(GameObject):
-    def __init__(self, gameInstance, spawnCoords: (int, int)):
+    def __init__(self, gameInstance, image: Surface, x: int, y: int):
         super().__init__(gameInstance)
-        self.image = pygame.image.load("assets/alienShip2.png").convert_alpha()
-        self.position = {
-            "x": spawnCoords[0],
-            "y": spawnCoords[1]
-        }
+        self.image = image.copy()
+        self.rect = self.image.get_rect()
+        self.rect.move_ip(x, y)
         self.speed = {
             "x": 3,
             "y": 0
         }
-        self.width = self.image.get_width()
-        self.height = self.image.get_height()
+        self.width = self.rect.width
+        self.height = self.rect.width
 
     def update(self):
-        self.position["x"] += self.speed["x"]
-        self.position["y"] += self.speed["y"]
+        self.rect.x += self.speed["x"]
+        self.rect.y += self.speed["y"]
 
-        if self.position["x"] < 0 or self.position["x"] + self.width > self.gameInstance.width:
+        if self.rect.x < 0 or self.rect.x + self.width > self.gameInstance.width:
             self.speed["x"] = -self.speed["x"]
-            self.position["y"] += self.height
+            self.rect.y += self.height
 
-        if self.position["x"] < 0:
-            self.position["x"] = 0
-        elif self.position["x"] + self.width > self.gameInstance.width:
-            self.position["x"] = self.gameInstance.width - self.width
+        if self.rect.x < 0:
+            self.rect.x = 0
+        elif self.rect.x + self.width > self.gameInstance.width:
+            self.rect.x = self.gameInstance.width - self.width
 
     def handleInput(self):
         pass
 
-    def draw(self):
-        self.gameInstance.screen.blit(self.image, (self.position["x"], self.position["y"]))
-
     # def damage(self):
-

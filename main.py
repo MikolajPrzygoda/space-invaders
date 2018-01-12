@@ -1,73 +1,63 @@
 import pygame
-
-from scripts.GameObjectClasses import Player, Enemy
-from scripts.Scene import *
+from scripts.Scene import MainMenuScene, Level1Scene
 
 
 class Game:
-    backgroundColor = (0, 0, 0)
-    width = 800
-    height = 640
-    fps = 120
-    screen = pygame.display.set_mode((width, height))
-    clock = pygame.time.Clock()
-    isRunning = True
+    def __init__(self):
+        self.backgroundColor = (0, 0, 0)
+        self.width = 800
+        self.height = 640
+        self.fps = 60
+        self.screen = pygame.display.set_mode((self.width, self.height))
+        self.clock = pygame.time.Clock()
+        self.currentScene = None
+        self.isRunning = True
+        self.scenes = dict(
+            mainMenu=MainMenuScene(self),
+            # pauseMenu=PauseMenuScene(self),
+            level1=Level1Scene(self)
+        )
 
     def run(self):
-        #-------------Events--------------
+        self.screen.fill(self.backgroundColor)
+
+        self.handleEvents()
+        self.currentScene.tick()
+
+        self.clock.tick(self.fps)
+        pygame.display.flip()
+
+    def handleEvents(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.isRunning = False
-
-            #------------KeyDownEvents--------------
+                break
+            # ------------KeyDownEvents--------------
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE:
-                    self.gameObjects["player"][0].toggleIsShooting()
-                elif event.key == pygame.K_ESCAPE:
+                if event.key == pygame.K_ESCAPE:
                     self.isRunning = False
-            #---------------------------------------
+                    break
+            # ---------------------------------------
 
-            #-------------KeyUpEvents---------------
+            # -------------KeyUpEvents---------------
             elif event.type == pygame.KEYUP:
                 pass
-            #---------------------------------------
-        #---------------------------------
-        self.clock.tick(self.fps)
-        self.screen.fill(self.backgroundColor)
+            # ---------------------------------------
 
-        # # remove offscreen projectiles
-        # for i in range(len(self.gameObjects["projectiles"])):
-        #     if self.gameObjects["projectiles"][i].y < -self.gameObjects["projectiles"][i].height:
-        #         self.gameObjects["projectiles"].pop(i)
-        #         break  #
-        #
-        # # call essential methods on every game object
-        # for gameObject in self.gameObjects["player"] + \
-        #                   self.gameObjects["enemies"] + \
-        #                   self.gameObjects["projectiles"] + \
-        #                   self.gameObjects["powerups"]:
-        #
-        #     gameObject.update()
-        #     gameObject.handleInput()
-        #     gameObject.draw()
+            game.currentScene.handleEvent(event)
 
-        pygame.display.flip()
-
-    # def createPlayer(self):
-    #     if len(self.gameObjects["player"]) > 0:
-    #         raise RuntimeError("Called createPlayer() for the second time.")
-    #     self.gameObjects["player"].append(Player(self))
+    def setCurrentScene(self, sceneName: str):
+        if self.currentScene:
+            self.currentScene.unload()
+        self.currentScene = self.scenes[sceneName]
+        self.currentScene.load()
 
 
 pygame.init()
+
 game = Game()
-scenes = dict(
-    mainMenu=MainMenuScene(),
-    # pauseMenu=PauseMenuScene(),
-    # level1=Level1Scene()
-)
-# game.createPlayer()
-# game.gameObjects["enemies"].append(Enemy(game, (400, 10)))
+# game.setCurrentScene("level1")
+game.setCurrentScene("mainMenu")
 while game.isRunning:
     game.run()
 
