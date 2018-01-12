@@ -1,5 +1,6 @@
 import pygame
 from scripts.GameObjectClasses import Player, Enemy
+from scripts.Menu import Menu
 
 
 class Scene:
@@ -22,18 +23,28 @@ class Scene:
 class MainMenuScene(Scene):
     def __init__(self, gameInstance):
         super().__init__(gameInstance)
+        self.menu = None
 
     def load(self):
-        pass
+        self.menu = Menu(self.gameInstance, "Space Invaders")
+        self.menu.addItem("Graj", "level1")
+        self.menu.addItem("Help", "help")
+        self.menu.addItem("Quit", "quit")
 
     def unload(self):
-        pass
+        self.menu = None
 
     def handleEvent(self, event):
-        pass
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_s or event.key == pygame.K_DOWN:
+                self.menu.setNextAsActive()
+            elif event.key == pygame.K_w or event.key == pygame.K_UP:
+                self.menu.setPreviousAsActive()
+            elif event.key == pygame.K_RETURN or event.key == pygame.K_SPACE:
+                self.menu.activate()
 
     def tick(self):
-        pass
+        self.menu.draw()
 
 
 class Level1Scene(Scene):
