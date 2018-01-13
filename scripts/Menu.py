@@ -12,7 +12,9 @@ class Menu:
             self.backgroundColor = backgroundColor
 
         def getSurface(self):
-            return self.font.render(self.text, 1, self.textColor, self.backgroundColor)
+            surface = self.font.render(self.text, 1, self.textColor, self.backgroundColor)
+            surface.set_colorkey(self.backgroundColor)
+            return surface
 
     def __init__(self, gameInstance, title: str):
         self.gameInstance = gameInstance
@@ -48,7 +50,6 @@ class Menu:
     def setNextAsActive(self):
         currentActiveIndex = self.items.index(self.activeItem)
         if currentActiveIndex == len(self.items) - 1:
-            #last item is already active
             return
         else:
             self.setActiveItem(self.items[currentActiveIndex+1])
@@ -56,7 +57,6 @@ class Menu:
     def setPreviousAsActive(self):
         currentActiveIndex = self.items.index(self.activeItem)
         if currentActiveIndex == 0:
-            #first item is already active
             return
         else:
             self.setActiveItem(self.items[currentActiveIndex-1])
@@ -79,11 +79,12 @@ class Menu:
 
     def activate(self):
         scene = self.activeItem.sceneName
-        validScenes = ["help", "level1"]
+        validScenes = ["help", "gameplay"]
         if scene == "quit":
             self.gameInstance.isRunning = False
+            return
         if scene in validScenes:
-            self.gameInstance.setCurrentScene(scene)
+            self.gameInstance.loadScene(scene)
         else:
-            print("No action assined to menu item 'sceneName' string")
+            print("No action assined to menu item 'sceneName' field")
             print("Valid strings: ", validScenes)
