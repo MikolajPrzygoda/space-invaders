@@ -22,7 +22,7 @@ class Menu:
         self.items = []
         self.activeItem = None
 
-        self.topPadding = 50
+        self.topPadding = 100
         self.titleBottomPadding = 200
         self.itemBottomPadding = 20
         self.itemFontSize = 34

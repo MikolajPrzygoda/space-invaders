@@ -1,8 +1,8 @@
 import gc
 import pygame
 
-from scripts.GameplayObjectClasses import Player, Enemy, Powerup
 from scripts.Menu import Menu
+from scripts.Levels import *
 
 
 class Scene:
@@ -29,9 +29,9 @@ class MainMenuScene(Scene):
 
     def load(self):
         self.menu = Menu(self.gameInstance, "Space Invaders")
-        self.menu.addItem("Play", "gameplay")
-        self.menu.addItem("Help", "help")
-        self.menu.addItem("Quit", "quit")
+        self.menu.addItem("Graj", "gameplay")
+        self.menu.addItem("Pomoc", "help")
+        self.menu.addItem("Wyjdź", "quit")
 
     def unload(self):
         self.menu = None
@@ -53,26 +53,41 @@ class MainMenuScene(Scene):
 class HelpScreenScene(Scene):
     def __init__(self, gameInstance):
         super().__init__(gameInstance)
-        self.labels = None
         self.font = None
         self.textColor = None
-        self.bgrColor = None
+        self.tipSurfaces = None
+        self.powerupSurfaces = None
+        self.powerupDescrtiptionsSurfaces = None
 
     def load(self):
-        self.labels = list()
-        self.font = pygame.font.SysFont("monospace", 20)
+        self.font = pygame.font.SysFont("monospace", 16)
         self.textColor = (255, 255, 255)
-        self.bgrColor = (0, 0, 0)
-        self.labels.append(Menu.Item("Sterowanie statkiem: w/s/a/d", "", self.font))
-        self.labels.append(Menu.Item("Przelaczanie strzelania: spacja", "", self.font))
-        self.labels.append(Menu.Item("Wybor opcji menu: spacja / enter", "", self.font))
-        self.labels.append(Menu.Item("Nacisnij 'q' aby powrocic do menu glownego", "", self.font))
+        self.tipSurfaces = [
+            self.font.render("Sterowanie statkiem: w/s/a/d", 1, self.textColor),
+            self.font.render("Przełączanie strzelania: spacja", 1, self.textColor),
+            self.font.render("Wybór opcji menu: spacja / enter", 1, self.textColor),
+            self.font.render("W każdej chwili działania gry możesz ja zamknąć za pomocą 'escape'", 1, self.textColor),
+            self.font.render("Naciśnij 'q' aby powrócić do menu głównego", 1, self.textColor),
+        ]
+        self.powerupDescrtiptionsSurfaces = [
+            self.font.render("Speed - zwiększa prędkość maksymalną i przyśpieszenie statku", 1, self.textColor),
+            self.font.render("Power - zwieksza szybkostrzelność, prędkość pocisków i ich obrażenia", 1, self.textColor),
+            self.font.render("Passthrough Bullets - twoje pociski przenikają przez przeciwników", 1, self.textColor),
+            self.font.render("Invincibiliy - zapewnia nietykalność na krótki czas", 1, self.textColor),
+        ]
+        self.powerupSurfaces = [
+            pygame.image.load("assets/powerup_power.png").convert_alpha(),
+            pygame.image.load("assets/powerup_speed.png").convert_alpha(),
+            pygame.image.load("assets/powerup_ghostBullets.png").convert_alpha(),
+            pygame.image.load("assets/powerup_invincibility.png").convert_alpha()
+        ]
 
     def unload(self):
-        self.labels = None
+        self.tipSurfaces = None
         self.font = None
         self.textColor = None
-        self.bgrColor = None
+        self.powerupSurfaces = None
+        self.powerupDescrtiptionsSurfaces = None
         gc.collect()
 
     def handleEvent(self, event):
@@ -84,61 +99,69 @@ class HelpScreenScene(Scene):
         screenPadding = 40
         itemBottomPadding = 20
         x, y = screenPadding, screenPadding
-        for label in self.labels:
-            surf = label.getSurface()
-            self.gameInstance.screen.blit(surf, (x, y))
-            y += surf.get_rect().height + itemBottomPadding
+
+        # print general tips list
+        for label in self.tipSurfaces:
+            self.gameInstance.screen.blit(label, (x, y))
+            y += label.get_rect().height + itemBottomPadding
+
+        y += 40 # additional padding above powerups list
+
+        # print list with icons and descriptions of ingame powerups
+        for i in range(len(self.powerupSurfaces)):
+            powerupSurface = self.powerupSurfaces[i]
+            powerupDescriptionSurface = self.powerupDescrtiptionsSurfaces[i]
+
+            self.gameInstance.screen.blit(powerupSurface, (x, y + 5))
+            self.gameInstance.screen.blit(powerupDescriptionSurface, (x + powerupSurface.get_rect().width + 5, y))
+            y += powerupDescriptionSurface.get_rect().height + itemBottomPadding
 
 
 class GameplayScene(Scene):
     def __init__(self, gameInstance):
         super().__init__(gameInstance)
-        self.playerSprites = None
         self.gameObjects = None
-        self.powerups = None
         self.images = None
         self.font = None
         self.scoreLabel = None
-        self.score = 0
+        self.score = None
 
         self.isActive = None
+        self.currentLevel = None
 
     def load(self):
         self.isActive = True
-        self.gameObjects = {
-            "player": None,
-            "enemies": [],
-            "playerProjectiles": [],
-            "enemyProjectiles": [],
-            "powerups": [],
-            "blocks": []
-        }
+        self.currentLevel = 1
         self.images = {
-            "player":       pygame.image.load("assets/playerShips.png").convert_alpha(),
-            "enemy":        pygame.image.load("assets/alienShip2.png").convert_alpha(),
-            "enemySpecial": pygame.image.load("assets/alienShip3.png").convert_alpha(),
-            "projectile":   pygame.image.load("assets/projectile.png").convert_alpha(),
-            "powerup":      pygame.image.load("assets/powerup.png").convert_alpha(),
-            "block":        pygame.Surface((100, 30)).fill((255, 255, 255))
+            "player":                   pygame.image.load("assets/playerShip.png").convert_alpha(),
+            "enemy":                    pygame.image.load("assets/alienShip.png").convert_alpha(),
+            "enemy2":                   pygame.image.load("assets/alienShip2.png").convert_alpha(),
+            "enemy3":                   pygame.image.load("assets/alienShip3.png").convert_alpha(),
+            "enemySpecial":             pygame.image.load("assets/alienShipSpecial.png").convert_alpha(),
+            "boss":                     pygame.image.load("assets/bossShip.png").convert_alpha(),
+            "projectile":               pygame.image.load("assets/projectile.png").convert_alpha(),
+            "enemyProjectile":          pygame.image.load("assets/enemyProjectile.png").convert_alpha(),
+            "enemyProjectile_directed": pygame.image.load("assets/enemyProjectile_directed.png").convert_alpha(),
+            "enemyProjectile_spread":   pygame.image.load("assets/enemyProjectile_spread.png").convert_alpha(),
+            "powerup_power":            pygame.image.load("assets/powerup_power.png").convert_alpha(),
+            "powerup_speed":            pygame.image.load("assets/powerup_speed.png").convert_alpha(),
+            "powerup_ghostBullets":     pygame.image.load("assets/powerup_ghostBullets.png").convert_alpha(),
+            "powerup_invincibility":    pygame.image.load("assets/powerup_invincibility.png").convert_alpha(),
+            "playerShield":             pygame.image.load("assets/shield.png").convert() #no per pixel alpha in that one
         }
-        self.powerups = [
-            Powerup(self.gameInstance, self.images["powerup"])
-        ]
-        # test enemy objects
-        self.gameObjects["enemies"].append(Enemy(self.gameInstance, self.images["enemy"], (300, 0), 2))
-        self.gameObjects["enemies"].append(Enemy(self.gameInstance, self.images["enemySpecial"], (200, 0), 4, self.powerups[0]))
-
-        self.gameObjects["player"] = Player(self.gameInstance, self.images["player"])
+        self.gameObjects = Level1().load(self.gameInstance, self.images)
+        self.score = 0
         self.font = pygame.font.SysFont("monospace", 20)
         self.scoreLabel = self.font.render("Score: ", 1, (255, 255, 255))
 
     def unload(self):
         self.isActive = False
-        self.playerSprites = None
         self.gameObjects = None
         self.images = None
+        self.score = None
         self.font = None
         self.scoreLabel = None
+        self.currentLevel = None
         gc.collect()
 
     def handleEvent(self, event):
@@ -151,50 +174,181 @@ class GameplayScene(Scene):
         elif event.type == pygame.KEYUP:
             pass
 
+    # noinspection PyArgumentList
     def tick(self):
         # call essential methods on every game object
         for gameObject in [self.gameObjects["player"]] + \
                 self.gameObjects["enemies"] + \
                 self.gameObjects["playerProjectiles"] + \
+                self.gameObjects["bossProjectiles"] + \
                 self.gameObjects["powerups"]:
             gameObject.draw()
             gameObject.update()
             gameObject.handleInput()
 
-        # drawing score
-        # quick solution for the following code trying to draw score after scene was unloaded
-        # TODO: do something less hacky to fix this
         if not self.isActive:
             return
-        self.gameInstance.screen.blit(self.scoreLabel, (30, 30))
+
+        # --- drawing ui ---
+        x = 20
+        y = 20
+        itemBottomPadding = 10
+        durationBarWidth = 100
+        bossHpBarWidth = 300
+        bossHpBarHeight = 10
+
+        # Score label
+        self.gameInstance.screen.blit(self.scoreLabel, (x, y))
         numberLabel = self.font.render(str(self.score), 1, (255, 255, 255))
-        self.gameInstance.screen.blit(numberLabel, (30 + self.scoreLabel.get_rect().width, 30))
+        self.gameInstance.screen.blit(numberLabel, (x + self.scoreLabel.get_rect().width, y))
+        y += numberLabel.get_rect().height + itemBottomPadding
+
+        # Active powerups list
+        for powerup in self.gameObjects["player"].activePowerups:
+            # draw icon
+            icon = self.images[powerup.type.value]
+            self.gameInstance.screen.blit(icon, (x, y))
+            # draw duration bar
+            surface = pygame.Surface((durationBarWidth, icon.get_rect().height)).convert_alpha()
+            surface.fill((255, 255, 255, 255))
+            percentLeft = powerup.duration / powerup.startDuration
+            surface.fill((0, 0, 0, 0), pygame.Rect(1, 1, durationBarWidth*percentLeft-2, icon.get_rect().height-2))
+            self.gameInstance.screen.blit(surface, (x + icon.get_rect().width + 10, y))
+
+            y += icon.get_rect().height + itemBottomPadding
+
+        # Boss hp bar if on 5th level
+        if self.currentLevel == 5:
+            hpPrercent = self.gameObjects["boss"].healthPoints / self.gameObjects["boss"].maxHp
+
+            # no idea why, sometimes hue was value not in [0, 360]
+            hue = 120 * hpPrercent
+            hue = min(max(0, hue), 120)
+
+            bossHpBarColor = pygame.Color("black")
+            bossHpBarColor.hsla = (hue, 100, 50, 100)
+            surface = pygame.Surface((bossHpBarWidth, bossHpBarHeight)).convert_alpha()
+            surface.fill(bossHpBarColor)
+            surface.fill(pygame.Color("black"), pygame.Rect(1, 1, bossHpBarWidth - 2, bossHpBarHeight - 2))
+            x = (self.gameInstance.width - surface.get_rect().width) / 2
+            surface.fill(bossHpBarColor, pygame.Rect(1, 1, bossHpBarWidth*hpPrercent - 2, bossHpBarHeight - 2))
+            self.gameInstance.screen.blit(surface, (x, 10))
+
+    def nextLevel(self):
+        if self.currentLevel == 1:
+            self.score += 10000
+            self.gameObjects = Level2().load(self.gameInstance, self.images)
+        elif self.currentLevel == 2:
+            self.score += 20000
+            self.gameObjects = Level3().load(self.gameInstance, self.images)
+        elif self.currentLevel == 3:
+            self.score += 30000
+            self.gameObjects = Level4().load(self.gameInstance, self.images)
+        elif self.currentLevel == 4:
+            self.score += 40000
+            self.gameObjects = Level5().load(self.gameInstance, self.images)
+        elif self.currentLevel == 5:
+            self.score += 100000
+            self.gameInstance.endScore = self.score
+            self.gameInstance.loadScene("winscreen")
+            return
+
+        self.currentLevel += 1
+
+    def checkForEnd(self):
+        if len(self.gameObjects["enemies"]) == 0:
+            self.nextLevel()
 
 
 class EndScreenScene(Scene):
     def __init__(self, gameInstance):
         super().__init__(gameInstance)
         self.label = None
+        self.labelTip1 = None
+        self.labelTip2 = None
         self.font = None
 
     def load(self):
+        self.font = pygame.font.SysFont("monospace", 16)
+        self.labelTip1 = self.font.render("Nacisnij 'q' aby powrocic do menu glownego", 1, (255, 255, 255))
+        self.labelTip2 = self.font.render("Nacisnij 'r' aby zagrac ponownie", 1, (255, 255, 255))
         self.font = pygame.font.SysFont("monospace", 34)
         self.label = self.font.render("Koniec gry, Twoj wynik to: ", 1, (255, 255, 255))
 
     def unload(self):
         self.font = None
         self.label = None
+        self.labelTip1 = None
+        self.labelTip2 = None
         gc.collect()
 
     def handleEvent(self, event):
         if event.type == pygame.KEYDOWN:
-            self.gameInstance.loadScene("menu")
+            if event.key == pygame.K_q:
+                self.gameInstance.loadScene("menu")
+            if event.key == pygame.K_r:
+                self.gameInstance.loadScene("gameplay")
 
     def tick(self):
         numberLabel = self.font.render(str(self.gameInstance.endScore), 1, (255, 255, 255))
 
-        x = (self.gameInstance.width - self.label.get_rect().width) / 2
+        x = (self.gameInstance.width - (self.label.get_rect().width + numberLabel.get_rect().width)) / 2
         y = (self.gameInstance.height - self.label.get_rect().height) / 2
 
         self.gameInstance.screen.blit(self.label, (x, y))
         self.gameInstance.screen.blit(numberLabel, (x + self.label.get_rect().width, y))
+
+        x = (self.gameInstance.width - self.labelTip1.get_rect().width) / 2
+        y += self.label.get_rect().height + 20
+        self.gameInstance.screen.blit(self.labelTip1, (x, y))
+
+        x = (self.gameInstance.width - self.labelTip2.get_rect().width) / 2
+        y += self.labelTip1.get_rect().height + 20
+        self.gameInstance.screen.blit(self.labelTip2, (x, y))
+
+
+class WinScreenScene(Scene):
+    def __init__(self, gameInstance):
+        super().__init__(gameInstance)
+        self.label = None
+        self.labelTip1 = None
+        self.labelTip2 = None
+        self.font = None
+
+    def load(self):
+        self.font = pygame.font.SysFont("monospace", 16)
+        self.labelTip1 = self.font.render("Nacisnij 'q' aby powrocic do menu glownego", 1, (255, 255, 255))
+        self.labelTip2 = self.font.render("Nacisnij 'r' aby zagrac ponownie", 1, (255, 255, 255))
+        self.font = pygame.font.SysFont("monospace", 34)
+        self.label = self.font.render("Wygrales, twoj wynik to: ", 1, (255, 255, 255))
+
+    def unload(self):
+        self.font = None
+        self.label = None
+        self.labelTip1 = None
+        self.labelTip2 = None
+        gc.collect()
+
+    def handleEvent(self, event):
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_q:
+                self.gameInstance.loadScene("menu")
+            if event.key == pygame.K_r:
+                self.gameInstance.loadScene("gameplay")
+
+    def tick(self):
+        numberLabel = self.font.render(str(self.gameInstance.endScore), 1, (255, 255, 255))
+
+        x = (self.gameInstance.width - (self.label.get_rect().width + numberLabel.get_rect().width)) / 2
+        y = (self.gameInstance.height - self.label.get_rect().height) / 2
+
+        self.gameInstance.screen.blit(self.label, (x, y))
+        self.gameInstance.screen.blit(numberLabel, (x + self.label.get_rect().width, y))
+
+        x = (self.gameInstance.width - self.labelTip1.get_rect().width) / 2
+        y += self.label.get_rect().height + 20
+        self.gameInstance.screen.blit(self.labelTip1, (x, y))
+
+        x = (self.gameInstance.width - self.labelTip2.get_rect().width) / 2
+        y += self.labelTip1.get_rect().height + 20
+        self.gameInstance.screen.blit(self.labelTip2, (x, y))

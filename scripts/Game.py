@@ -1,9 +1,10 @@
 import pygame
-from scripts.Scene import MainMenuScene, HelpScreenScene, GameplayScene, EndScreenScene
+from scripts.Scene import MainMenuScene, HelpScreenScene, GameplayScene, EndScreenScene, WinScreenScene
 
 
 class Game:
     def __init__(self):
+        pygame.display.set_caption("Space Invaders")
         self.backgroundColor = (0, 0, 0)
         self.width = 800
         self.height = 640
@@ -18,6 +19,7 @@ class Game:
             help=HelpScreenScene(self),
             gameplay=GameplayScene(self),
             endscreen=EndScreenScene(self),
+            winscreen=WinScreenScene(self),
         )
 
     def run(self):
