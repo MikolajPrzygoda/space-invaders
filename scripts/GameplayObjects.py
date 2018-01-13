@@ -279,8 +279,8 @@ class Player(GameplayObject):
             self.rect.x = self.gameInstance.width - self.width
             self.currentSpeed["x"] = 0
 
-        if self.rect.y + self.height < self.minHeight:
-            self.rect.y = self.minHeight - self.height
+        if self.rect.y < self.minHeight:
+            self.rect.y = self.minHeight
             self.currentSpeed["y"] = 0
 
         elif self.rect.y + self.height > self.gameInstance.height:
@@ -394,6 +394,10 @@ class Enemy(GameplayObject):
             self.rect.x = 0
         elif self.rect.x + self.width > self.gameInstance.width:
             self.rect.x = self.gameInstance.width - self.width
+
+        # end the game if enemy touched the bottom of screen
+        if self.rect.y + self.rect.height > self.gameInstance.height:
+            self.sceneInstance.gameObjects["player"].die()
 
     def die(self):
         self.sceneInstance.score += self.scoreValue
