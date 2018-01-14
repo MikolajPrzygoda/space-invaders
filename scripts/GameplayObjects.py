@@ -639,3 +639,31 @@ class Boss(Enemy):
         x = cos(alpha)*vector[0] - sin(alpha)*vector[1]
         y = sin(alpha)*vector[0] + cos(alpha)*vector[1]
         return x, y
+
+
+class Particle(GameplayObject):
+    def __init__(self, gameInstance, particles: list, pos: (int, int) = (None, None), speed: float = 1) -> None:
+        super().__init__(gameInstance)
+        self.particles = particles
+        self.speed = speed
+
+        if pos[0] is not None:
+            self.position = pos
+        else:
+            self.position = (randint(0, gameInstance.width), 0)
+
+        self.particles.append(self)
+
+    def update(self):
+        self.position = (self.position[0], self.position[1] + self.speed)
+        if self.position[1] > self.gameInstance.height:
+            self.die()
+
+    def draw(self):
+        self.gameInstance.screen.fill((255, 255, 255), pygame.Rect(self.position[0], self.position[1], 1, 1))
+
+    def die(self):
+        for i in range(len(self.particles)):
+            if self == self.particles[i]:
+                del self.particles[i]
+                break

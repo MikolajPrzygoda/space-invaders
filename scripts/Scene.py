@@ -3,8 +3,11 @@ import sys
 import gc
 import pygame
 
+from random import randint, random
+
 from scripts.Menu import Menu
 from scripts.Levels import *
+from scripts.GameplayObjects import Particle
 
 
 def loadAsset(relativePath: str, noAlpha=False) -> pygame.Surface:
@@ -42,15 +45,29 @@ class MainMenuScene(Scene):
     def __init__(self, gameInstance):
         super().__init__(gameInstance)
         self.menu = None
+        self.particles = None
+        self.spawnSpeed = 4
+        self.spawnCooldown = 0
 
     def load(self):
         self.menu = Menu(self.gameInstance, "Space Invaders")
         self.menu.addItem("Graj", "gameplay")
         self.menu.addItem("Pomoc", "help")
         self.menu.addItem("Wyjdź", "quit")
+        self.particles = list()
+
+        # 75 is the avarage count of particles on screen when spawned once every 5 frames, as they are now
+        for i in range(75):
+            Particle(
+                self.gameInstance,
+                self.particles,
+                pos=(randint(0, self.gameInstance.width), randint(0, self.gameInstance.height)),
+                speed=random()*2+1
+            )
 
     def unload(self):
         self.menu = None
+        self.particles = None
         gc.collect()
 
     def handleEvent(self, event):
@@ -63,7 +80,17 @@ class MainMenuScene(Scene):
                 self.menu.activate()
 
     def tick(self):
+        print(len(self.particles))
+        if self.spawnCooldown == 0:
+            Particle(self.gameInstance, self.particles, speed=random()*2+1)
+            self.spawnCooldown = self.spawnSpeed
+        else:
+            self.spawnCooldown -= 1
+
         self.menu.draw()
+        for particle in self.particles:
+            particle.draw()
+            particle.update()
 
 
 class HelpScreenScene(Scene):
