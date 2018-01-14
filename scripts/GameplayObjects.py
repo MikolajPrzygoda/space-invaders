@@ -474,7 +474,6 @@ class Boss(Enemy):
         # spawning enemy ships
         if self.spawnCooldown == 0:
             self.spawnShip()
-            print("spawn")
             self.spawnCooldown = self.spawnSpeed
         else:
             if self.spawnCooldown > 0:
