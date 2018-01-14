@@ -83,7 +83,7 @@ class Level3(Level):
         for i in range(100, 701, 60):
             self.gameObjects["enemies"].append(
                 Enemy(gameInstance, images["enemy2"], (i, 100), healthPoints=3, scoreValue=int(self.killScore) * 3)
-                    .setSpeed((-2, 0))
+                .setSpeed((-2, 0))
             )
         for r in range(2, 4):
             for i in range(100, 701, 60):
