@@ -80,7 +80,6 @@ class MainMenuScene(Scene):
                 self.menu.activate()
 
     def tick(self):
-        print(len(self.particles))
         if self.spawnCooldown == 0:
             Particle(self.gameInstance, self.particles, speed=random()*2+1)
             self.spawnCooldown = self.spawnSpeed
