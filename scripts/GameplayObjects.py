@@ -296,14 +296,14 @@ class Player(GameplayObject):
                    )
 
     def handleInput(self):
-        # ifs instead of elifs to allow for change in speed in more than one direction
-        if pygame.key.get_pressed()[pygame.K_a]:
+        pressed = pygame.key.get_pressed()
+        if pressed[pygame.K_a]:
             self.currentSpeed["x"] -= self.acceleration
-        if pygame.key.get_pressed()[pygame.K_d]:
+        if pressed[pygame.K_d]:
             self.currentSpeed["x"] += self.acceleration
-        if pygame.key.get_pressed()[pygame.K_s]:
+        if pressed[pygame.K_s]:
             self.currentSpeed["y"] += self.acceleration
-        if pygame.key.get_pressed()[pygame.K_w]:
+        if pressed[pygame.K_w]:
             self.currentSpeed["y"] -= self.acceleration
 
     def update(self):
