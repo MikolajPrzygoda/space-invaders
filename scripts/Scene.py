@@ -149,7 +149,7 @@ class GameplayScene(Scene):
             "powerup_invincibility":    pygame.image.load("assets/powerup_invincibility.png").convert_alpha(),
             "playerShield":             pygame.image.load("assets/shield.png").convert() #no per pixel alpha in that one
         }
-        self.gameObjects = Level1().load(self.gameInstance, self.images)
+        self.gameObjects = Level4().load(self.gameInstance, self.images)
         self.score = 0
         self.font = pygame.font.SysFont("monospace", 20)
         self.scoreLabel = self.font.render("Score: ", 1, (255, 255, 255))

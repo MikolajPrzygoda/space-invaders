@@ -28,9 +28,10 @@ class Level1(Level):
 
         for r in range(2):
             for i in range(100, 701, 60):
-                self.gameObjects["enemies"].append(
-                    Enemy(gameInstance, images["enemy"], (i, r*self.rowHeight), scoreValue=int(self.killScore))
-                )
+                enemy = Enemy(gameInstance, images["enemy"], (i, r * self.rowHeight), scoreValue=int(self.killScore))
+                if r == 1:
+                    enemy.setSpeed((-2, 0))
+                self.gameObjects["enemies"].append(enemy)
 
         return self.gameObjects
 
@@ -46,13 +47,14 @@ class Level2(Level):
 
         for i in range(100, 701, 60):
             self.gameObjects["enemies"].append(
-                Enemy(gameInstance, images["enemy2"], (i, 0), healthPoints=3, scoreValue=int(self.killScore)*3)
+                Enemy(gameInstance, images["enemy2"], (i, 0), healthPoints=3, scoreValue=int(self.killScore) * 3)
             )
         for r in range(1, 4):
             for i in range(100, 701, 60):
-                self.gameObjects["enemies"].append(
-                    Enemy(gameInstance, images["enemy"], (i, r*self.rowHeight), scoreValue=int(self.killScore))
-                )
+                enemy = Enemy(gameInstance, images["enemy"], (i, r * self.rowHeight), scoreValue=int(self.killScore))
+                if r in [1, 3]:
+                    enemy.setSpeed((-2, 0))
+                self.gameObjects["enemies"].append(enemy)
         self.gameObjects["enemies"].append(
             Enemy(gameInstance,
                   images["enemySpecial"],
@@ -76,17 +78,19 @@ class Level3(Level):
 
         for i in range(100, 701, 60):
             self.gameObjects["enemies"].append(
-                Enemy(gameInstance, images["enemy3"], (i, 0), healthPoints=5, scoreValue=int(self.killScore)*5)
+                Enemy(gameInstance, images["enemy3"], (i, 0), healthPoints=5, scoreValue=int(self.killScore) * 5)
             )
         for i in range(100, 701, 60):
             self.gameObjects["enemies"].append(
-                Enemy(gameInstance, images["enemy2"], (i, 100), healthPoints=3, scoreValue=int(self.killScore)*3)
+                Enemy(gameInstance, images["enemy2"], (i, 100), healthPoints=3, scoreValue=int(self.killScore) * 3)
+                    .setSpeed((-2, 0))
             )
         for r in range(2, 4):
             for i in range(100, 701, 60):
-                self.gameObjects["enemies"].append(
-                    Enemy(gameInstance, images["enemy"], (i, r*self.rowHeight), scoreValue=int(self.killScore))
-                )
+                enemy = Enemy(gameInstance, images["enemy"], (i, r * self.rowHeight), scoreValue=int(self.killScore))
+                if r == 3:
+                    enemy.setSpeed((-2, 0))
+                self.gameObjects["enemies"].append(enemy)
         self.gameObjects["enemies"].append(
             Enemy(gameInstance,
                   images["enemySpecial"],
@@ -119,14 +123,15 @@ class Level4(Level):
         for r in range(0, 4):
             for i in range(100, 701, 60):
                 if r < 2:
-                    self.gameObjects["enemies"].append(
-                        Enemy(gameInstance,
-                              images["enemy3"],
-                              (i, r * self.rowHeight),
-                              healthPoints=5,
-                              scoreValue=int(self.killScore) * 5
-                              )
-                    )
+                    enemy = Enemy(gameInstance,
+                                  images["enemy3"],
+                                  (i, r * self.rowHeight),
+                                  healthPoints=5,
+                                  scoreValue=int(self.killScore) * 5
+                                  )
+                    if r == 0:
+                        enemy.setSpeed((-2, 0))
+                    self.gameObjects["enemies"].append(enemy)
                 else:
                     if r == 3 and i in [160, 340, 400, 640]:
                         powerup = None
@@ -146,9 +151,11 @@ class Level4(Level):
                                   )
                         )
                     else:
-                        self.gameObjects["enemies"].append(
-                            Enemy(gameInstance, images["enemy"], (i, r*self.rowHeight), scoreValue=int(self.killScore))
-                        )
+                        enemy = Enemy(gameInstance, images["enemy"], (i, r * self.rowHeight),
+                                      scoreValue=int(self.killScore))
+                        if r == 2:
+                            enemy.setSpeed((-2, 0))
+                        self.gameObjects["enemies"].append(enemy)
 
         return self.gameObjects
 
