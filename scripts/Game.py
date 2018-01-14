@@ -4,12 +4,11 @@ from scripts.Scene import MainMenuScene, HelpScreenScene, GameplayScene, EndScre
 
 class Game:
     def __init__(self):
-        pygame.display.set_caption("Space Invaders")
-        self.backgroundColor = (0, 0, 0)
         self.width = 800
         self.height = 640
         self.fps = 60
         self.screen = pygame.display.set_mode((self.width, self.height))
+        pygame.display.set_caption("Space Invaders")
         pygame.display.set_icon(loadAsset("assets/icon.jpg"))
         self.clock = pygame.time.Clock()
         self.currentScene = None
@@ -24,7 +23,7 @@ class Game:
         )
 
     def run(self):
-        self.screen.fill(self.backgroundColor)
+        self.screen.fill((0, 0, 0))
         self.handleEvents()
 
         self.currentScene.tick()
