@@ -1,8 +1,24 @@
+import os
+import sys
 import gc
 import pygame
 
 from scripts.Menu import Menu
 from scripts.Levels import *
+
+
+def loadAsset(relativePath: str, noAlpha=False) -> pygame.Surface:
+    """ Get an asset, works for development and for packaged one-file exutable"""
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    absPath = os.path.join(base_path, relativePath)
+    if noAlpha:
+        return pygame.image.load(absPath).convert()
+    else:
+        return pygame.image.load(absPath).convert_alpha()
 
 
 class Scene:
@@ -76,10 +92,10 @@ class HelpScreenScene(Scene):
             self.font.render("Invincibiliy - zapewnia nietykalność na krótki czas", 1, self.textColor),
         ]
         self.powerupSurfaces = [
-            pygame.image.load("assets/powerup_power.png").convert_alpha(),
-            pygame.image.load("assets/powerup_speed.png").convert_alpha(),
-            pygame.image.load("assets/powerup_ghostBullets.png").convert_alpha(),
-            pygame.image.load("assets/powerup_invincibility.png").convert_alpha()
+            loadAsset("assets/powerup_power.png"),
+            loadAsset("assets/powerup_speed.png"),
+            loadAsset("assets/powerup_ghostBullets.png"),
+            loadAsset("assets/powerup_invincibility.png")
         ]
 
     def unload(self):
@@ -133,23 +149,23 @@ class GameplayScene(Scene):
         self.isActive = True
         self.currentLevel = 1
         self.images = {
-            "player":                   pygame.image.load("assets/playerShip.png").convert_alpha(),
-            "enemy":                    pygame.image.load("assets/alienShip.png").convert_alpha(),
-            "enemy2":                   pygame.image.load("assets/alienShip2.png").convert_alpha(),
-            "enemy3":                   pygame.image.load("assets/alienShip3.png").convert_alpha(),
-            "enemySpecial":             pygame.image.load("assets/alienShipSpecial.png").convert_alpha(),
-            "boss":                     pygame.image.load("assets/bossShip.png").convert_alpha(),
-            "projectile":               pygame.image.load("assets/projectile.png").convert_alpha(),
-            "enemyProjectile":          pygame.image.load("assets/enemyProjectile.png").convert_alpha(),
-            "enemyProjectile_directed": pygame.image.load("assets/enemyProjectile_directed.png").convert_alpha(),
-            "enemyProjectile_spread":   pygame.image.load("assets/enemyProjectile_spread.png").convert_alpha(),
-            "powerup_power":            pygame.image.load("assets/powerup_power.png").convert_alpha(),
-            "powerup_speed":            pygame.image.load("assets/powerup_speed.png").convert_alpha(),
-            "powerup_ghostBullets":     pygame.image.load("assets/powerup_ghostBullets.png").convert_alpha(),
-            "powerup_invincibility":    pygame.image.load("assets/powerup_invincibility.png").convert_alpha(),
-            "playerShield":             pygame.image.load("assets/shield.png").convert() #no per pixel alpha in that one
+            "player":                   loadAsset("assets/playerShip.png"),
+            "enemy":                    loadAsset("assets/alienShip.png"),
+            "enemy2":                   loadAsset("assets/alienShip2.png"),
+            "enemy3":                   loadAsset("assets/alienShip3.png"),
+            "enemySpecial":             loadAsset("assets/alienShipSpecial.png"),
+            "boss":                     loadAsset("assets/bossShip.png"),
+            "projectile":               loadAsset("assets/projectile.png"),
+            "enemyProjectile":          loadAsset("assets/enemyProjectile.png"),
+            "enemyProjectile_directed": loadAsset("assets/enemyProjectile_directed.png"),
+            "enemyProjectile_spread":   loadAsset("assets/enemyProjectile_spread.png"),
+            "powerup_power":            loadAsset("assets/powerup_power.png"),
+            "powerup_speed":            loadAsset("assets/powerup_speed.png"),
+            "powerup_ghostBullets":     loadAsset("assets/powerup_ghostBullets.png"),
+            "powerup_invincibility":    loadAsset("assets/powerup_invincibility.png"),
+            "playerShield":             loadAsset("assets/shield.png", noAlpha=True) #no per pixel alpha in that one
         }
-        self.gameObjects = Level4().load(self.gameInstance, self.images)
+        self.gameObjects = Level1().load(self.gameInstance, self.images)
         self.score = 0
         self.font = pygame.font.SysFont("monospace", 20)
         self.scoreLabel = self.font.render("Score: ", 1, (255, 255, 255))
