@@ -1,5 +1,5 @@
 import pygame
-from scripts.Scene import MainMenuScene, HelpScreenScene, GameplayScene, EndScreenScene, WinScreenScene
+from scripts.Scene import MainMenuScene, HelpScreenScene, GameplayScene, EndScreenScene, WinScreenScene, loadAsset
 
 
 class Game:
@@ -10,6 +10,7 @@ class Game:
         self.height = 640
         self.fps = 60
         self.screen = pygame.display.set_mode((self.width, self.height))
+        pygame.display.set_icon(loadAsset("assets/icon.jpg"))
         self.clock = pygame.time.Clock()
         self.currentScene = None
         self.isRunning = True
