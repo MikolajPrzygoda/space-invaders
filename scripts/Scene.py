@@ -10,8 +10,8 @@ from scripts.Levels import *
 from scripts.GameplayObjects import Particle
 
 
-def loadAsset(relativePath: str, noAlpha=False) -> pygame.Surface:
-    """ Get an asset, works for development and for packaged one-file exutable"""
+def loadAsset(relativePath: str, noAlpha: bool = False) -> pygame.Surface:
+    """ Get an asset, works for development and for packaged one-file executable"""
     try:
         base_path = sys._MEIPASS
     except Exception:
@@ -100,6 +100,8 @@ class HelpScreenScene(Scene):
         self.tipSurfaces = None
         self.powerupSurfaces = None
         self.powerupDescrtiptionsSurfaces = None
+        self.screenPadding = 40
+        self.itemBottomPadding = 20
 
     def load(self):
         self.font = pygame.font.SysFont("monospace", 16)
@@ -138,16 +140,14 @@ class HelpScreenScene(Scene):
                 self.gameInstance.loadScene("menu")
 
     def tick(self):
-        screenPadding = 40
-        itemBottomPadding = 20
-        x, y = screenPadding, screenPadding
+        x, y = self.screenPadding, self.screenPadding
 
         # print general tips list
         for label in self.tipSurfaces:
             self.gameInstance.screen.blit(label, (x, y))
-            y += label.get_rect().height + itemBottomPadding
+            y += label.get_rect().height + self.itemBottomPadding
 
-        y += 40 # additional padding above powerups list
+        y += 40  # additional padding above powerups list
 
         # print list with icons and descriptions of ingame powerups
         for i in range(len(self.powerupSurfaces)):
@@ -156,7 +156,7 @@ class HelpScreenScene(Scene):
 
             self.gameInstance.screen.blit(powerupSurface, (x, y + 5))
             self.gameInstance.screen.blit(powerupDescriptionSurface, (x + powerupSurface.get_rect().width + 5, y))
-            y += powerupDescriptionSurface.get_rect().height + itemBottomPadding
+            y += powerupDescriptionSurface.get_rect().height + self.itemBottomPadding
 
 
 class GameplayScene(Scene):
@@ -189,7 +189,7 @@ class GameplayScene(Scene):
             "powerup_speed":            loadAsset("assets/powerup_speed.png"),
             "powerup_ghostBullets":     loadAsset("assets/powerup_ghostBullets.png"),
             "powerup_invincibility":    loadAsset("assets/powerup_invincibility.png"),
-            "playerShield":             loadAsset("assets/shield.png", noAlpha=True) #no per pixel alpha in that one
+            "playerShield":             loadAsset("assets/shield.png", noAlpha=True)  # no per pixel alpha in that one
         }
         self.gameObjects = Level1().load(self.gameInstance, self.images)
         self.score = 0
@@ -261,10 +261,10 @@ class GameplayScene(Scene):
 
         # Boss hp bar if on 5th level
         if self.currentLevel == 5:
-            hpPrercent = self.gameObjects["boss"].healthPoints / self.gameObjects["boss"].maxHp
+            hpPercent = self.gameObjects["boss"].healthPoints / self.gameObjects["boss"].maxHp
 
-            # no idea why, sometimes hue was value not in [0, 360]
-            hue = 120 * hpPrercent
+            # no idea why, sometimes hue was value not in [0, 120]
+            hue = 120 * hpPercent
             hue = min(max(0, hue), 120)
 
             bossHpBarColor = pygame.Color("black")
@@ -273,7 +273,7 @@ class GameplayScene(Scene):
             surface.fill(bossHpBarColor)
             surface.fill(pygame.Color("black"), pygame.Rect(1, 1, bossHpBarWidth - 2, bossHpBarHeight - 2))
             x = (self.gameInstance.width - surface.get_rect().width) / 2
-            surface.fill(bossHpBarColor, pygame.Rect(1, 1, bossHpBarWidth*hpPrercent - 2, bossHpBarHeight - 2))
+            surface.fill(bossHpBarColor, pygame.Rect(1, 1, bossHpBarWidth*hpPercent - 2, bossHpBarHeight - 2))
             self.gameInstance.screen.blit(surface, (x, 10))
 
     def nextLevel(self):

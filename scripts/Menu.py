@@ -45,7 +45,7 @@ class Menu:
             self.activeItem = item
             self.activeItem.textColor = (255, 140, 140)
         else:
-            raise Exception("Set as active item thats not in this menu")
+            raise Exception("Set as active item that's not in this menu")
 
     def setNextAsActive(self):
         currentActiveIndex = self.items.index(self.activeItem)
@@ -86,5 +86,5 @@ class Menu:
         if scene in validScenes:
             self.gameInstance.loadScene(scene)
         else:
-            print("No action assined to menu item 'sceneName' field")
+            print("No action assigned to menu item 'sceneName' field")
             print("Valid strings: ", validScenes)
