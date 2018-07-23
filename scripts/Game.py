@@ -1,5 +1,5 @@
 import pygame
-from scripts.Scene import MainMenuScene, HelpScreenScene, GameplayScene, EndScreenScene, WinScreenScene, loadAsset
+from scripts.Scene import MainMenuScene, HelpScreenScene, GameplayScene, EndScreenScene, WinScreenScene, load_asset
 
 
 class Game:
@@ -9,11 +9,11 @@ class Game:
         self.fps = 60
         self.screen = pygame.display.set_mode((self.width, self.height))
         pygame.display.set_caption("Space Invaders")
-        pygame.display.set_icon(loadAsset("assets/icon.jpg"))
+        pygame.display.set_icon(load_asset("assets/icon.jpg"))
         self.clock = pygame.time.Clock()
-        self.currentScene = None
-        self.isRunning = True
-        self.endScore = 0
+        self.current_scene = None
+        self.is_running = True
+        self.end_score = 0
         self.scenes = dict(
             menu=MainMenuScene(self),
             help=HelpScreenScene(self),
@@ -24,27 +24,28 @@ class Game:
 
     def run(self):
         self.screen.fill((0, 0, 0))
-        self.handleEvents()
+        self.handle_events()
 
-        self.currentScene.tick()
+        self.current_scene.tick()
 
         self.clock.tick(self.fps)
         pygame.display.flip()
 
-    def handleEvents(self):
+    def handle_events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                self.isRunning = False
+                self.is_running = False
                 break
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    self.isRunning = False
+                    self.is_running = False
                     break
 
-            self.currentScene.handleEvent(event)
+            self.current_scene.handle_event(event)
 
-    def loadScene(self, sceneName: str):
-        if self.currentScene:
-            self.currentScene.unload()
-        self.currentScene = self.scenes[sceneName]
-        self.currentScene.load()
+    def load_scene(self, scene_name: str):
+        if self.current_scene:
+            self.current_scene.unload()
+        self.current_scene = self.scenes[scene_name]
+        self.current_scene.load()
+        return self

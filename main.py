@@ -5,8 +5,8 @@ from scripts.Game import Game
 pygame.init()
 
 game = Game()
-game.loadScene("menu")
-while game.isRunning:
+game.load_scene("menu")
+while game.is_running:
     game.run()
 
 pygame.quit()
